@@ -113,53 +113,60 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def do_create(self, args):
-        """Crear un objeto de cualquier clase"""
-        
-        # Dividir los argumentos de entrada en una lista
-        my_list = args.split(' ')
-        
-        # Comprobar si falta el argumento
-        if not args:
-            print("** nombre de clase faltante **")
-            return
-        
-        # Comprobar si la clase especificada existe en el diccionario 'HBNBCommand.classes'
-        elif my_list[0] not in HBNBCommand.classes:
-            print("** la clase no existe **")
-            return
-        
-        # Crear una nueva instancia de la clase especificada
-        new_instance = HBNBCommand.classes[my_list[0]]()
-        
-        # Imprimir el atributo 'id' de la nueva instancia
-        print(new_instance.id)
-        
-        # Recorrer los elementos restantes en 'my_list' (excluyendo el nombre de la clase)
-        # Estos elementos están en el formato 'clave=valor'
-        for params in my_list[1:]:
-            
-            # Dividir cada par 'clave=valor' en 'clave' y 'valor'
-            key_value = params.split('=')
-            key = key_value[0]
-            value = key_value[1]
-            
-            # Definir una tabla de traducción para manejar reemplazos de caracteres específicos
-            # Reemplazar las comillas dobles (ASCII 34) por Nada (None)
-            # Reemplazar el guión bajo (ASCII 95) por un espacio (ASCII 32)
-            table = {
-                34: None,  # Reemplazar " con Nada
-                95: 32     # Reemplazar _ con espacio
-            }
-            
-            # Traducir el 'valor' utilizando la tabla definida
-            value = value.translate(table)
-            
-            # Establecer el atributo 'clave' del objeto 'new_instance' al 'valor' traducido
-            setattr(new_instance, key, value)
-        
-        # Guardar la nueva instancia en la base de datos
-        new_instance.save()
+    def do_create(self, arg):
+        """Usage: create <Class name> <param 1> <param 2> <param 3>...
+        Create a new class instance with given keys/values and print its id.
+        """
+        try:
+            if not arg:
+                raise SyntaxError("Missing arguments")
+
+            # Split the input arguments into class name and parameters
+            class_and_params = arg.split(" ", 1)
+            class_name = class_and_params[0]
+            params = class_and_params[1].split(" ") if len(class_and_params) > 1 else []
+
+            kwargs = {}
+            for param in params:
+                # Split the parameter into key and value
+                key_value = param.split("=", 1)
+                if len(key_value) == 2:
+                    key, value = key_value[0], key_value[1]
+
+                    # Handle different value types: string, float, integer
+                    if value.startswith('"') and value.endswith('"'):
+                        # String value: Remove surrounding quotes and replace underscores
+                        value = value[1:-1].replace("_", " ").replace('\\"', '"')
+                    elif "." in value:
+                        # Float value: Convert to float
+                        try:
+                            value = float(value)
+                        except ValueError:
+                            continue
+                    else:
+                        # Integer value: Convert to integer
+                        try:
+                            value = int(value)
+                        except ValueError:
+                            continue
+
+                    kwargs[key] = value
+
+            if kwargs == {}:
+                obj = eval(class_name)()
+            else:
+                obj = eval(class_name)(**kwargs)
+                storage.new(obj)
+
+            print(obj.id)
+            obj.save()
+
+        except SyntaxError as e:
+            print(str(e))
+        except NameError:
+            print(f"** Class '{class_name}' doesn't exist **")
+
+    # Rest of the code...
 
 
     def help_create(self):
