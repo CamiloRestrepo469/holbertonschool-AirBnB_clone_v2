@@ -1,0 +1,22 @@
+# Comentarios empiezan con el símbolo de almohadilla (#)
+# Ignorar archivos y carpetas generados por el sistema operativo
+.DS_Store
+Thumbs.db
+
+# Ignorar archivos de compilación y ejecutables para varios lenguajes de programación
+*.exe
+*.dll
+*.so
+*.out
+
+# Ignorar archivos de registro y temporalidad
+*.log
+logs/
+*.tmp
+
+# Ignorar archivos y carpetas específicos
+config.ini
+secreto.txt
+carpeta_a_ignorar/
+expli/
+env/
